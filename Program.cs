@@ -1,20 +1,22 @@
 ﻿using System;
 using Battleships.assets.ship;
+using Battleships.assets.shared;
 
-Ship ship2 = new Ship("Small boat",
-    new string[]
+ShipSimple ship2 = new ShipSimple(ShipClassNames.DESTROYER,
+    new GridCoordinates[]
     {
-        "A2",
-        "A3",
-        "A4"
+        new GridCoordinates("A", "1"),
+        new GridCoordinates("A", "2"),
+        new GridCoordinates("A", "3"),
+        new GridCoordinates("A", "4")
     });
 
-Console.WriteLine(ship2.TryHitShip("B2"));
+Console.WriteLine(ship2.TryHitShip(new GridCoordinates("A", "8")));
 Console.WriteLine(ship2.DamagedGrids);
 Console.WriteLine(ship2.IsSunk());
 
 Console.WriteLine();
 
-Console.WriteLine(ship2.TryHitShip("A2"));
+Console.WriteLine(ship2.TryHitShip(new GridCoordinates("A", "1")));
 Console.WriteLine(ship2.DamagedGrids);
 Console.WriteLine(ship2.IsSunk());
