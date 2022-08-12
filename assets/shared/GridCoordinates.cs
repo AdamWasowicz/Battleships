@@ -45,11 +45,6 @@
             return _y + _x;
         }
 
-        public string[] GetCombinedCoordinatesAsArray()
-        {
-            return new string[] { _x, _y };
-        }
-
 
         public GridCoordinates(string x, string y)
         {
@@ -63,6 +58,12 @@
         {
             _x = gridCoordinates.X;
             _y = gridCoordinates.Y;
+        }
+
+        public GridCoordinates()
+        {
+            _x = "A";
+            _y = "1";
         }
     }
 }

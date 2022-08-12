@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Battleships.assets.ship
 {
-    internal class ShipSimple
+    public class Ship
     {
         private int _size;
         private int _damagedGrids = 0;
@@ -161,7 +161,7 @@ namespace Battleships.assets.ship
         }
 
 
-        public ShipSimple(string className, GridCoordinates[] gridCoordinates)
+        public Ship(string className, GridCoordinates[] gridCoordinates)
         {
             ValidateCoordinates(gridCoordinates);
 

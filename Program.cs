@@ -2,7 +2,7 @@
 using Battleships.assets.ship;
 using Battleships.assets.shared;
 
-ShipSimple ship2 = new ShipSimple(ShipClassNames.DESTROYER,
+Ship ship2 = new Ship(ShipDetails.CARRIER.Item1,
     new GridCoordinates[]
     {
         new GridCoordinates("A", "1"),
