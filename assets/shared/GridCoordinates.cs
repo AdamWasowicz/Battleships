@@ -2,34 +2,34 @@
 {
     public struct GridCoordinates
     {
-        private string _x;
-        private string _y;
+        private char _x;
+        private int _y;
 
 
-        public string X
+        public char X
         {
             get { return _x; }
         }
 
-        public string Y
+        public int Y
         {
             get { return _y; }
         }
 
 
         //Private methods
-        private static void ValidateParams(string x, string y)
+        private static void ValidateParams(char x, int y)
         {
             //X
-            if (x.Length == 0)
+            if (x.ToString().Length == 0)
                 throw new InvalidDataException("Invalid Coordinates, X cannot be an empty string");
-            if (x.Length > 1)
+            if (x.ToString().Length > 1)
                 throw new InvalidDataException("Invalid Coordinates, X must be max one character long");
 
             //Y
-            if (y.Length == 0)
+            if (y.ToString().Length == 0)
                 throw new InvalidDataException("Invalid Coordinates, Y cannot be an empty string");
-            if (y.Length > 2)
+            if (y.ToString().Length > 2)
                 throw new InvalidDataException("Invalid Coordinates, X must be max two character long");
         }
 
@@ -37,16 +37,11 @@
         //Public methods
         public string GetCombinedCoordinatesAsString()
         {
-            return _x + _y;
-        }
-
-        public string GetCombinedCoordinatesAsStringReverse()
-        {
-            return _y + _x;
+            return _x.ToString() + _y.ToString();
         }
 
 
-        public GridCoordinates(string x, string y)
+        public GridCoordinates(char x, int y)
         {
             ValidateParams(x, y);
 
@@ -62,8 +57,8 @@
 
         public GridCoordinates()
         {
-            _x = "A";
-            _y = "1";
+            _x = 'A';
+            _y = 1;
         }
     }
 }

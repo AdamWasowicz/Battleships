@@ -60,7 +60,7 @@ namespace Battleships.assets.ship
 
         private void ValidateCoordinates(GridCoordinates[] gridCoordinates)
         {
-            List<string> arrayOfX = new List<string>(gridCoordinates.Length);
+            List<char> arrayOfX = new List<char>(gridCoordinates.Length);
             List<int> arrayOfY = new List<int>(gridCoordinates.Length);
             bool inRowX = true;
             bool inRowY = true;
@@ -69,12 +69,10 @@ namespace Battleships.assets.ship
 
 
             //Coords sequence
-            //
-            //
             foreach (var gridCoords in gridCoordinates)
             {
                 arrayOfX.Add(gridCoords.X);
-                arrayOfY.Add(Int32.Parse(gridCoords.Y));
+                arrayOfY.Add(gridCoords.Y);
             }
 
             arrayOfX.Sort();
@@ -117,7 +115,7 @@ namespace Battleships.assets.ship
             {
                 for (int i = 0; i < arrayOfX.Count - 1; i++)
                 {
-                    if (arrayOfX[i][0] - arrayOfX[i + 1][0] != -1)
+                    if (arrayOfX[i] - arrayOfX[i + 1] != -1)
                     {
                         validPlacementX = false;
                         break;
@@ -143,9 +141,7 @@ namespace Battleships.assets.ship
         {
             for (int i = 0; i < _gridCoordinates.Length; i++)
 {
-                if (gridCoordinates.GetCombinedCoordinatesAsString() == _gridCoordinates[i].GetCombinedCoordinatesAsString()
-||
-                    gridCoordinates.GetCombinedCoordinatesAsString() == _gridCoordinates[i].GetCombinedCoordinatesAsStringReverse())
+                if (gridCoordinates.GetCombinedCoordinatesAsString() == _gridCoordinates[i].GetCombinedCoordinatesAsString())
                 {
                     PartHit(i);
                     return true;
