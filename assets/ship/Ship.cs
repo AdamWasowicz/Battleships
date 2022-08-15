@@ -131,7 +131,9 @@ namespace Battleships.assets.ship
         //Public methods
         public bool IsSunk()
         {
-            if (_damagedGrids == _size)
+            //Console.WriteLine($"Ship {_className}, damaged grids: {_damagedGrids}, size: {_size}, isSunk: {_damagedGrids >= _size}");
+
+            if (_damagedGrids >= _size)
                 return true;
 
             return false;

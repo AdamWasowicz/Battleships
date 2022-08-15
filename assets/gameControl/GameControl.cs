@@ -25,19 +25,19 @@ namespace Battleships.assets.gameControl
         private ICanPlay _player2;
 
         //Game State
-        private List<List<Tuple<GridCoordinates, Ship>>> _gridsWithShips;           //<Place, Ship Ref>[...index][player1, player2]
-        private List<Tuple<GridCoordinates, bool>>  _shotsMade;                     //<Place, did something got hit?>[plater1, player2]
-        private List<List<Ship>> _playerShips;                                       //Refs to player's ships [player1, player2]
-        private int[] _playerShipsSunk = {0, 0};                                    //[player1, player2]
-        private bool _gameFinished = false;                                         //Is game finished
-        private bool _gameInProgress = false;                                       //Is game in progress
-        private int _currentTurn = 0;                                               //Current turn
+        private List<List<Tuple<GridCoordinates, Ship>>> _gridsWithShips;               //<Place, Ship Ref>[...index][player1, player2]
+        private List<List<Tuple<GridCoordinates, bool>>>  _shotsMade;                   //<Place, did something got hit?>[plater1, player2]
+        private List<List<Ship>> _playerShips;                                          //Refs to player's ships [player1, player2]
+        private int[] _playerShipsSunk = {0, 0};                                        //[player1, player2]
+        private bool _gameFinished = false;                                             //Is game finished
+        private bool _gameInProgress = false;                                           //Is game in progress
+        private int _currentTurn = 0;                                                   //Current turn
 
         //Other
-        private const int _maxAmountRandomShipPlacementTries = 20;                  //How many tries before brute force searchnig method 
-        private const int _amountOfShipsOnOneSide = 5;                              //Number of ships for each player
-        private int _verboseLevel = 0;                                              //Verbose level
-        private int _maxTurns = 100;                                                //After _maxTurns exceded game will finish
+        private const int _maxAmountRandomShipPlacementTries = 20;                      //How many tries before brute force searchnig method 
+        private int _amountOfShipsOnOneSide = ShipDetails.ReturnAllAsArray().Length;    //Number of ships for each player
+        private int _verboseLevel = 0;                                                  //Verbose level
+        private int _maxTurns = 100;                                                    //After _maxTurns exceded game will finish
 
 
         //GET
@@ -71,31 +71,52 @@ namespace Battleships.assets.gameControl
         private void NextTurnAuto()
         {
             //Select Player
-            int playerIndex = 0;
-            if (_currentTurn % 2 == 0)
-                playerIndex = 1;
-            else
-                playerIndex = 0;
-
-            
+            int playerIndex = _currentTurn % 2;
+            int enemyIndex = (_currentTurn + 1) % 2;
             bool isHit = false;
-            GridCoordinates shotCoordinates = _player1.MakeMove();
+            string playerName = "";
+            GridCoordinates shotCoordinates = new GridCoordinates();
+
+
+            if (playerIndex == 0)
+            {
+                shotCoordinates = _player1.MakeMove(_shotsMade[playerIndex], _playerShips[playerIndex]);
+                playerName = _player1.GetPlayerName();
+            }
+            else
+            {
+                shotCoordinates = _player2.MakeMove(_shotsMade[playerIndex], _playerShips[playerIndex]);
+                playerName = _player2.GetPlayerName();
+            }
+
 
             for (int i = 0; i < _gridsWithShips[playerIndex].Count; i++)
             {
-                if (shotCoordinates.GetCombinedCoordinatesAsString() == _gridsWithShips[playerIndex][i].Item1.GetCombinedCoordinatesAsString())
+                //Hit
+                if (shotCoordinates.GetCombinedCoordinatesAsString() == _gridsWithShips[enemyIndex][i].Item1.GetCombinedCoordinatesAsString())
                 {
-                    isHit = _gridsWithShips[playerIndex][i].Item2.TryHitShip(shotCoordinates);
+                    isHit = _gridsWithShips[enemyIndex][i].Item2.TryHitShip(shotCoordinates);
 
-                    if (_gridsWithShips[playerIndex][i].Item2.IsSunk())
-                        _playerShipsSunk[playerIndex]++;
+                    if (_gridsWithShips[enemyIndex][i].Item2.IsSunk())
+                        _playerShipsSunk[enemyIndex]++;
 
-                    _shotsMade.Add(new Tuple<GridCoordinates, bool>(shotCoordinates, true));
+                    //Verbose
+                    if (_verboseLevel >= 1)
+                        Console.WriteLine($"Player {playerName} at {shotCoordinates.GetCombinedCoordinatesAsString()}, it was a hit");
+
+                    _shotsMade[playerIndex].Add(new Tuple<GridCoordinates, bool>(shotCoordinates, true));
                 }
             }
 
+            //Miss
             if (!isHit)
-                _shotsMade.Add(new Tuple<GridCoordinates, bool>(shotCoordinates, false));
+            {
+                //Verbose
+                if (_verboseLevel >= 1)
+                    Console.WriteLine($"Player {playerName} at {shotCoordinates.GetCombinedCoordinatesAsString()}, it was a miss");
+
+                _shotsMade[playerIndex].Add(new Tuple<GridCoordinates, bool>(shotCoordinates, false));
+            }
         }
 
         private void EndGameByTimeOut()
@@ -103,27 +124,58 @@ namespace Battleships.assets.gameControl
             _gameFinished = true;
             Console.WriteLine("Game exceded max turns");
 
-            throw new NotImplementedException();
+            if (_playerShipsSunk[0] < _playerShipsSunk[1])
+                Console.WriteLine($"!!! Player {_player1.GetPlayerName()} Won by having more ships !!!");
+            else if (_playerShipsSunk[0] > _playerShipsSunk[1])
+                Console.WriteLine($"!!! Player {_player2.GetPlayerName()} Won by having more ships !!!");
+            else
+                Console.WriteLine($"!!! TIE !!!");
+
+            ShowGameRecap();
         }
 
         private void EndGameByWin()
         {
             _gameFinished = true;
+            Console.WriteLine("Game finished");
+
+            if (_playerShipsSunk[0] < _amountOfShipsOnOneSide)
+                Console.WriteLine($"!!! Player {_player1.GetPlayerName()} Won !!!");
+            else
+                Console.WriteLine($"!!! Player {_player2.GetPlayerName()} Won !!!");
+
             ShowGameRecap();
-
-            throw new NotImplementedException();
         }
 
-        private string ShowGameRecap()
+        private void ShowGameRecap()
         {
-            throw new NotImplementedException();
+            for (int i = 0; i < 2; i++)
+            {
+                string playerName = i % 2 == 0 ? _player1.GetPlayerName() : _player2.GetPlayerName();
+                Console.WriteLine($"Player {playerName}: ");
+
+                int miss = 0;
+                int hit = 0;
+
+                foreach (var shot in _shotsMade[i])
+                {
+                    if (shot.Item2 == true)
+                        hit++;
+                    else
+                        miss++;
+                }
+
+                float acc = (hit * 100) / (hit + miss);
+
+                Console.WriteLine($"Accuracy: {acc}%");
+                Console.WriteLine($"Hit: {hit} times");
+                Console.WriteLine($"Miss: {miss} times");
+                Console.WriteLine($"Ships left: {_amountOfShipsOnOneSide - _playerShipsSunk[i]}");
+                Console.WriteLine();
+            }
         }
 
-        private void PlaceShips()
-        {
-            throw new NotImplementedException();
-        }
-
+        //Places each ship for each player
         public void PlaceShipsMain()
         {
             Tuple<string, int>[] shipDetails = ShipDetails.ReturnAllAsArray();
@@ -146,7 +198,7 @@ namespace Battleships.assets.gameControl
         {
             const int maxCoordinateOffset = 10;
             bool placeFound = false;
-            Tuple<bool, GridCoordinates[]> verificationResultTuple = new Tuple<bool, GridCoordinates[]>(false, null);
+            Tuple<bool, GridCoordinates[]> verificationResultTuple = new Tuple<bool, GridCoordinates[]>(false, new GridCoordinates[] {});
 
 
             for (int i = 0; i < _maxAmountRandomShipPlacementTries && !placeFound; i++)
@@ -234,7 +286,7 @@ namespace Battleships.assets.gameControl
         //Public methods
         public void StartFullGame()
         {
-            PlaceShips();
+            PlaceShipsMain();
 
             while (_currentTurn <= _maxTurns
                 && _playerShipsSunk[0] < _amountOfShipsOnOneSide
@@ -244,11 +296,11 @@ namespace Battleships.assets.gameControl
                 _currentTurn++;
             }
 
-            if (_currentTurn > _maxTurns)
-                EndGameByTimeOut();
-
             if (_playerShipsSunk[0] == _amountOfShipsOnOneSide || _playerShipsSunk[1] == _amountOfShipsOnOneSide)
                 EndGameByWin();
+
+            if (_currentTurn > _maxTurns)
+                EndGameByTimeOut();
         }
 
         public void DisplayPlayerShipsWithCoordinates(int playerIndex) {
@@ -280,18 +332,22 @@ namespace Battleships.assets.gameControl
 
 
 
-        public GameControl(ICanPlay player1 = null, ICanPlay player2 = null, int maxTurns = 50, int verboseLevel = 0)
+        public GameControl(ICanPlay player1, ICanPlay player2, int maxTurns = 50, int verboseLevel = 1)
         {
             _player1 = player1;
             _player2 = player2;
             _maxTurns = maxTurns;
             _verboseLevel = verboseLevel;
 
-            _shotsMade = new List<Tuple<GridCoordinates, bool>>(maxTurns);
-            _playerShips = new List<List<Ship>>()
+            _shotsMade = new List<List<Tuple<GridCoordinates, bool>>>(2)
             {
-                new List<Ship>(),
-                new List<Ship>()
+                new List<Tuple<GridCoordinates, bool>>(maxTurns),
+                new List<Tuple<GridCoordinates, bool>>(maxTurns)
+            };
+            _playerShips = new List<List<Ship>>(2)
+            {
+                new List<Ship>(5),
+                new List<Ship>(5)
             };
             _gridsWithShips = new List<List<Tuple<GridCoordinates, Ship>>>(2) 
             { 

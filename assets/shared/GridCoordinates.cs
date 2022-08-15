@@ -17,8 +17,8 @@
         }
 
 
-        //Private methods
-        private static void ValidateParams(char x, int y)
+        //Public methods
+        public static bool ValidateParams(char x, int y)
         {
             //X
             if (x.ToString().Length == 0)
@@ -31,10 +31,11 @@
                 throw new InvalidDataException("Invalid Coordinates, Y cannot be an empty string");
             if (y.ToString().Length > 2)
                 throw new InvalidDataException("Invalid Coordinates, X must be max two character long");
+            
+
+            return true;
         }
 
-
-        //Public methods
         public string GetCombinedCoordinatesAsString()
         {
             return _x.ToString() + _y.ToString();
