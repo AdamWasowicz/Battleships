@@ -1,20 +1,16 @@
 ﻿using Battleships.assets.shared;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace Battleships.assets.ship
 {
     public class Ship
     {
-        private int _size;
-        private int _damagedGrids = 0;
-        private string _className;
-        private bool[] _partsHit;
-        private GridCoordinates[] _gridCoordinates;
+        private int _size;                                  //Size of ship
+        private int _damagedGrids = 0;                      //How many of ship's parts got damaged
+        private string _className;                          //Name of ship class
+        private bool[] _partsHit;                           //Indicates what coordinates of _gridCoordinates got hit
+        private GridCoordinates[] _gridCoordinates;         //Indicates where ship is located
+
 
 
         //GET
@@ -51,13 +47,16 @@ namespace Battleships.assets.ship
         }
 
 
+
         //Private methods
+        //When ship part got hit
         private void PartHit(int index)
         {
             _partsHit[index] = true;
             _damagedGrids++;
         }
 
+        //Validates if passed coordinates are valid
         private void ValidateCoordinates(GridCoordinates[] gridCoordinates)
         {
             List<char> arrayOfX = new List<char>(gridCoordinates.Length);
@@ -128,17 +127,17 @@ namespace Battleships.assets.ship
         }
 
 
+
         //Public methods
         public bool IsSunk()
         {
-            //Console.WriteLine($"Ship {_className}, damaged grids: {_damagedGrids}, size: {_size}, isSunk: {_damagedGrids >= _size}");
-
             if (_damagedGrids >= _size)
                 return true;
 
             return false;
         }
 
+        //Return true if coordinates overlap with ship part; that means ship got hit
         public bool TryHitShip(GridCoordinates gridCoordinates)
         {
             for (int i = 0; i < _gridCoordinates.Length; i++)
@@ -153,11 +152,19 @@ namespace Battleships.assets.ship
             return false;
         }
 
-        public GridCoordinates[] GetShipPartsCoordinatesAsGridCoordinatesArray()
-        {
-            return GridCoordinates;
-        }
 
+
+        public Ship(Ship ship)
+        {
+            _size = ship._size;
+            _damagedGrids = ship._size;
+            _className = ship._className.Substring(0);
+            _partsHit = ship._partsHit.ToArray();
+
+            _gridCoordinates = new GridCoordinates[_size];
+            for (int i = 0; i < _size; i++)
+                _gridCoordinates[i] = new GridCoordinates(ship._gridCoordinates[i]);
+        }
 
         public Ship(string className, GridCoordinates[] gridCoordinates)
         {

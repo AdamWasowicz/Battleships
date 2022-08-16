@@ -1,6 +1,4 @@
 ﻿using System;
-using Battleships.assets.ship;
-using Battleships.assets.shared;
 using Battleships.assets.gameControl;
 using Battleships.assets.playable;
 

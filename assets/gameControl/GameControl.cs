@@ -25,19 +25,18 @@ namespace Battleships.assets.gameControl
         private ICanPlay _player2;
 
         //Game State
-        private List<List<Tuple<GridCoordinates, Ship>>> _gridsWithShips;               //<Place, Ship Ref>[...index][player1, player2]
-        private List<List<Tuple<GridCoordinates, bool>>>  _shotsMade;                   //<Place, did something got hit?>[plater1, player2]
-        private List<List<Ship>> _playerShips;                                          //Refs to player's ships [player1, player2]
-        private int[] _playerShipsSunk = {0, 0};                                        //[player1, player2]
-        private bool _gameFinished = false;                                             //Is game finished
-        private bool _gameInProgress = false;                                           //Is game in progress
+        private List<List<Tuple<GridCoordinates, Ship>>> _gridsWithShips;               //<Place, Ship>[index of tuple][player1 grids, player2 grids]
+        private List<List<Tuple<GridCoordinates, bool>>>  _shotsMade;                   //<Place, did something got hit?>[plater1 shot, player2 shot]
+        private List<List<Ship>> _playerShips;                                          //[Ship][player1 ships, player2 ships]
+        private int[] _playerShipsSunk = {0, 0};                                        //[player1's ships sunk, player2's ships sunk]
         private int _currentTurn = 0;                                                   //Current turn
 
         //Other
         private const int _maxAmountRandomShipPlacementTries = 20;                      //How many tries before brute force searchnig method 
         private int _amountOfShipsOnOneSide = ShipDetails.ReturnAllAsArray().Length;    //Number of ships for each player
-        private int _verboseLevel = 0;                                                  //Verbose level
-        private int _maxTurns = 100;                                                    //After _maxTurns exceded game will finish
+        private int _verboseLevel;                                                      //Verbose level
+        private int _maxTurns;                                                          //After _maxTurns exceded game will finish
+
 
 
         //GET
@@ -66,6 +65,67 @@ namespace Battleships.assets.gameControl
             get { return _playerShipsSunk[1]; }
         }
 
+        public List<Tuple<GridCoordinates, Ship>> Player1GridsWithShipCopy
+        {
+            get { return PlayerGridsWithShipCopy(0); }
+        }
+
+        public List<Tuple<GridCoordinates, Ship>> Player2GridsWithShipCopy
+        {
+            get { return PlayerGridsWithShipCopy(1); }
+        }
+
+        public List<Tuple<GridCoordinates, bool>> Player1ShotsMadeCopy
+        {
+            get { return PlayerShotsMadeCopy(0); }
+        }
+
+        public List<Tuple<GridCoordinates, bool>> Player2ShotsMadeCopy
+        {
+            get { return PlayerShotsMadeCopy(1); }
+        }
+
+        public List<Ship> Player1ShipsCopy
+        {
+            get { return PlayerShipsCopy(0); }
+        }
+
+        public List<Ship> Player2ShipsCopy
+        {
+            get { return PlayerShipsCopy(1); }
+        }
+
+
+
+        //Copy methods
+        private List<Tuple<GridCoordinates, Ship>> PlayerGridsWithShipCopy(int playerIndex)
+        {
+            List<Tuple<GridCoordinates, Ship>> copy = new List<Tuple<GridCoordinates, Ship>>(_gridsWithShips[playerIndex].Count);
+            foreach (var tuple in _gridsWithShips[playerIndex])
+                copy.Add(new Tuple<GridCoordinates, Ship>(new GridCoordinates(tuple.Item1), new Ship(tuple.Item2)));
+
+            return copy;
+        }
+
+        private List<Tuple<GridCoordinates, bool>> PlayerShotsMadeCopy(int playerIndex)
+        {
+            List<Tuple<GridCoordinates, bool>> copy = new List<Tuple<GridCoordinates, bool>>(_shotsMade[playerIndex].Count);
+            foreach (var tuple in _shotsMade[playerIndex])
+                copy.Add(new Tuple<GridCoordinates, bool>(new GridCoordinates(tuple.Item1), tuple.Item2));
+
+            return copy;
+        }
+
+        private List<Ship> PlayerShipsCopy(int playerIndex)
+        {
+            List<Ship> copy = new List<Ship>(_playerShips.Count);
+            foreach (var ship in _playerShips[playerIndex])
+                copy.Add(new Ship(ship));
+
+            return copy;
+        }
+
+
 
         //Private methods
         private void NextTurnAuto()
@@ -80,12 +140,12 @@ namespace Battleships.assets.gameControl
 
             if (playerIndex == 0)
             {
-                shotCoordinates = _player1.MakeMove(_shotsMade[playerIndex], _playerShips[playerIndex]);
+                shotCoordinates = _player1.MakeMove(Player1ShotsMadeCopy, Player1ShipsCopy);
                 playerName = _player1.GetPlayerName();
             }
             else
             {
-                shotCoordinates = _player2.MakeMove(_shotsMade[playerIndex], _playerShips[playerIndex]);
+                shotCoordinates = _player2.MakeMove(Player2ShotsMadeCopy, Player2ShipsCopy);
                 playerName = _player2.GetPlayerName();
             }
 
@@ -121,7 +181,6 @@ namespace Battleships.assets.gameControl
 
         private void EndGameByTimeOut()
         {
-            _gameFinished = true;
             Console.WriteLine("Game exceded max turns");
 
             if (_playerShipsSunk[0] < _playerShipsSunk[1])
@@ -136,7 +195,6 @@ namespace Battleships.assets.gameControl
 
         private void EndGameByWin()
         {
-            _gameFinished = true;
             Console.WriteLine("Game finished");
 
             if (_playerShipsSunk[0] < _amountOfShipsOnOneSide)
@@ -238,6 +296,7 @@ namespace Battleships.assets.gameControl
                 _gridsWithShips[playerIndex].Add(new Tuple<GridCoordinates, Ship>(coord, newShip));
         }
 
+        //Verify if coordiantes are free
         private Tuple<bool, GridCoordinates[]> VerifyFreeGridsAndReturnThem(List<GridCoordinates> takenGrids, GridCoordinates coordinates, int size, Direction direction)
         {
             GridCoordinates[] newTakenGridCoordinates = new GridCoordinates[size];
@@ -283,6 +342,8 @@ namespace Battleships.assets.gameControl
         }
 
 
+
+
         //Public methods
         public void StartFullGame()
         {
@@ -303,41 +364,19 @@ namespace Battleships.assets.gameControl
                 EndGameByTimeOut();
         }
 
-        public void DisplayPlayerShipsWithCoordinates(int playerIndex) {
-
-            Console.WriteLine($"Player { playerIndex + 1 } ships:");
-
-            foreach (var ship in _playerShips[playerIndex])
-            {
-                Console.WriteLine(ship.ClassName);
-                foreach (var grid in ship.GetShipPartsCoordinatesAsGridCoordinatesArray())
-                    Console.WriteLine(grid.GetCombinedCoordinatesAsString());
-                Console.WriteLine();
-            }
-        }
-
-        public void DisplayPlayerTakenGridsSorted(int playerIndex)
-        {
-            var listTuple = _gridsWithShips[playerIndex];
-            var listString = new List<string>();
-            foreach (var tuple in listTuple)
-                listString.Add(tuple.Item1.GetCombinedCoordinatesAsString());
-
-            listString.Sort();
-
-            Console.WriteLine($"Player { playerIndex + 1 } taken grids:");
-            foreach (var stringValue in listString)
-                Console.WriteLine(stringValue);
-        }
 
 
-
-        public GameControl(ICanPlay player1, ICanPlay player2, int maxTurns = 50, int verboseLevel = 1)
+        public GameControl(ICanPlay player1, ICanPlay player2, int maxTurns = 150, int verboseLevel = 1)
         {
             _player1 = player1;
             _player2 = player2;
+
+            if (maxTurns <= 0)
+                throw new InvalidDataException();
+
             _maxTurns = maxTurns;
             _verboseLevel = verboseLevel;
+
 
             _shotsMade = new List<List<Tuple<GridCoordinates, bool>>>(2)
             {

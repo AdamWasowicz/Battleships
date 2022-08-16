@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Battleships.assets.shared;
+﻿using Battleships.assets.shared;
 using Battleships.assets.ship;
 
 namespace Battleships.assets.playable
@@ -11,8 +6,8 @@ namespace Battleships.assets.playable
     public class BattleshipBot : ICanPlay
     {
         private string _botName;
-        private List<Tuple<GridCoordinates, bool>> _shotsTakenCopy = null;
         private const int _maxTriesNumber = 10;
+
 
 
         //Private methods
@@ -30,29 +25,7 @@ namespace Battleships.assets.playable
             return selectedCoordinates;
         }
 
-        private void CopyShotsTaken(List<Tuple<GridCoordinates, bool>> shotsTaken)
-        {
-            //If _shotsTakenCopy exists then add last record from shotsTaken
-            //it contains only new record
-            if (_shotsTakenCopy != null)
-            {
-                _shotsTakenCopy.Add(shotsTaken[shotsTaken.Count - 1]);
-                return;
-            }
-
-            List<Tuple<GridCoordinates, bool>> copy = new List<Tuple<GridCoordinates, bool>>(shotsTaken.Count);
-
-            foreach (var shot in shotsTaken)
-                copy.Add(new Tuple<GridCoordinates, bool>(new GridCoordinates(shot.Item1.X, shot.Item1.Y), shot.Item2));
-
-            _shotsTakenCopy = copy;   
-        }
-
-
-        public string GetPlayerName()
-        {
-            return _botName.ToString();
-        }
+        
 
         //Public methods
         public ICanPlay ReturnCopy()
@@ -60,19 +33,22 @@ namespace Battleships.assets.playable
             return new BattleshipBot(_botName);
         }
 
+        public string GetPlayerName()
+        {
+            return _botName.ToString();
+        }
+
         public GridCoordinates MakeMove(List<Tuple<GridCoordinates, bool>> shotsTaken, List<Ship> playerShips)
         {
-            //Copy
-            CopyShotsTaken(shotsTaken);
 
             GridCoordinates shot = new GridCoordinates();
 
             for (int i = 0; i < _maxTriesNumber; i++)
             {
                 bool shotAlreadyExists = false;
-                shot = MakeRandomMove(_shotsTakenCopy);
+                shot = MakeRandomMove(shotsTaken);
 
-                foreach (var takenShoot in _shotsTakenCopy)
+                foreach (var takenShoot in shotsTaken)
                 {
                     if (shot.GetCombinedCoordinatesAsString() == takenShoot.Item1.GetCombinedCoordinatesAsString())
                     {
@@ -85,10 +61,9 @@ namespace Battleships.assets.playable
                     return shot;
             }
             
-            return MakeRandomMove(_shotsTakenCopy);
+            return MakeRandomMove(shotsTaken);
         }
 
-        
 
 
         public BattleshipBot(string botName)
